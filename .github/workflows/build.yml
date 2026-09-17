@@ -22,13 +22,21 @@ jobs:
           distribution: temurin
           java-version: "17"
 
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
+      # GitHub's ubuntu-latest runners already ship with a working Android
+      # SDK + licenses pre-accepted at $ANDROID_HOME. The previous approach
+      # used the android-actions/setup-android action, which decided the
+      # preinstalled cmdline-tools were "the wrong version" and downloaded a
+      # fresh copy with NO pre-accepted licenses - that fresh copy then
+      # blocked forever on an interactive license prompt (including for the
+      # unrelated Google TV add-on), which is exactly what was failing.
+      # Using the runner's own preinstalled SDK directly sidesteps that
+      # entirely.
+      - name: Show preinstalled Android SDK location
+        run: |
+          echo "ANDROID_HOME=$ANDROID_HOME"
+          echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT"
+          sdkmanager --version
 
-      # sdkmanager blocks on an interactive license prompt for some packages
-      # (this is what was failing before - the runner has no TTY to answer
-      # "y", so the prompt aborted the whole step). Piping `yes` into
-      # `--licenses` accepts every pending SDK license non-interactively.
       - name: Accept Android SDK licenses
         run: yes | sdkmanager --licenses > /dev/null || true
 
