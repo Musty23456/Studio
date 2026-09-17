@@ -27,15 +27,29 @@ jobs:
       # used the android-actions/setup-android action, which decided the
       # preinstalled cmdline-tools were "the wrong version" and downloaded a
       # fresh copy with NO pre-accepted licenses - that fresh copy then
-      # blocked forever on an interactive license prompt (including for the
-      # unrelated Google TV add-on), which is exactly what was failing.
-      # Using the runner's own preinstalled SDK directly sidesteps that
-      # entirely.
-      - name: Show preinstalled Android SDK location
+      # blocked forever on an interactive license prompt. Using the runner's
+      # own preinstalled SDK directly sidesteps that. However, $ANDROID_HOME
+      # itself is set, but its cmdline-tools/bin folder is NOT automatically
+      # on PATH on every runner image, which is what "sdkmanager: command
+      # not found" (exit 127) meant - so we locate it explicitly here and
+      # add it to PATH for every step after this one.
+      - name: Locate sdkmanager and add it to PATH
         run: |
           echo "ANDROID_HOME=$ANDROID_HOME"
           echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT"
-          sdkmanager --version
+          CANDIDATE="$ANDROID_HOME/cmdline-tools/latest/bin"
+          if [ -x "$CANDIDATE/sdkmanager" ]; then
+            FOUND_DIR="$CANDIDATE"
+          else
+            FOUND_FILE=$(find "$ANDROID_HOME" -maxdepth 5 -type f -name sdkmanager 2>/dev/null | head -n 1)
+            if [ -z "$FOUND_FILE" ]; then
+              echo "::error::Could not locate sdkmanager anywhere under $ANDROID_HOME"
+              exit 1
+            fi
+            FOUND_DIR=$(dirname "$FOUND_FILE")
+          fi
+          echo "Using sdkmanager at $FOUND_DIR/sdkmanager"
+          echo "$FOUND_DIR" >> "$GITHUB_PATH"
 
       - name: Accept Android SDK licenses
         run: yes | sdkmanager --licenses > /dev/null || true
