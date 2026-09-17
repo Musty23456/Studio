@@ -25,9 +25,16 @@ jobs:
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
 
+      # sdkmanager blocks on an interactive license prompt for some packages
+      # (this is what was failing before - the runner has no TTY to answer
+      # "y", so the prompt aborted the whole step). Piping `yes` into
+      # `--licenses` accepts every pending SDK license non-interactively.
+      - name: Accept Android SDK licenses
+        run: yes | sdkmanager --licenses > /dev/null || true
+
       - name: Install NDK & CMake
         run: |
-          sdkmanager --install "ndk;26.1.10909125" "cmake;3.22.1"
+          yes | sdkmanager --install "ndk;26.1.10909125" "cmake;3.22.1"
 
       # Using gradle/actions/setup-gradle to provision Gradle itself means the
       # build works even though this repository does not commit a binary
