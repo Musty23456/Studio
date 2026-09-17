@@ -1,0 +1,40 @@
+# Gradle
+.gradle/
+build/
+app/build/
+*/build/
+gradle-app.setting
+!gradle-wrapper.jar
+
+# Local configuration
+local.properties
+
+# Android Studio / IntelliJ
+.idea/
+*.iml
+*.ipr
+*.iws
+.navigation/
+captures/
+.externalNativeBuild/
+.cxx/
+
+# CMake / NDK build outputs
+**/CMakeCache.txt
+**/CMakeFiles/
+
+# Keystores and signing (never commit real signing material)
+*.jks
+*.keystore
+keystore.properties
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Generated project data (per-user local projects live in app-private storage
+# on device, not in the repo, but exclude any accidental exports)
+/exports/

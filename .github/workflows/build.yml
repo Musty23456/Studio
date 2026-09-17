@@ -1,0 +1,69 @@
+name: Build Almus Studio APK
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
+  workflow_dispatch: {}
+
+jobs:
+  build:
+    name: Build & test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install NDK & CMake
+        run: |
+          sdkmanager --install "ndk;26.1.10909125" "cmake;3.22.1"
+
+      # Using gradle/actions/setup-gradle to provision Gradle itself means the
+      # build works even though this repository does not commit a binary
+      # gradle-wrapper.jar (see README "Gradle wrapper note"). It also gives
+      # us dependency-cache restore/save for free.
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v3
+        with:
+          gradle-version: "8.7"
+
+      - name: Run unit tests
+        run: gradle testDebugUnitTest --stacktrace
+        working-directory: .
+
+      - name: Build debug APK
+        run: gradle assembleDebug --stacktrace
+        working-directory: .
+
+      - name: Report test results on failure
+        if: failure()
+        run: |
+          echo "Build or tests failed. See the logs above for the failing task."
+          find . -path "*/build/test-results/*.xml" -exec echo "--- {} ---" \; -exec cat {} \; || true
+
+      - name: Upload debug APK
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: almus-studio-debug-apk
+          path: app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
+
+      - name: Upload unit test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: unit-test-results
+          path: app/build/test-results/**/*.xml
+          if-no-files-found: ignore

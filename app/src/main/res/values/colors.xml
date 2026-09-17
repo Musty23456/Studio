@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="almus_background">#0E0F12</color>
+    <color name="almus_surface">#17181D</color>
+    <color name="almus_surface_alt">#1F2128</color>
+    <color name="almus_accent">#7C4DFF</color>
+    <color name="almus_accent_variant">#00E5C7</color>
+    <color name="almus_waveform">#7C4DFF</color>
+    <color name="almus_text_primary">#F2F2F5</color>
+    <color name="almus_text_secondary">#9A9CA5</color>
+    <color name="almus_danger">#FF5470</color>
+    <color name="almus_warning">#FFB454</color>
+</resources>
